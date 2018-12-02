@@ -108,3 +108,4 @@ venv.bak/
 pip-selfcheck.json
 *.input
 pyvenv.cfg
+.vscode/
