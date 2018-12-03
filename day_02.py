@@ -52,7 +52,7 @@ from collections import Counter
 from typing import Sequence, Optional
 
 with open('day_02.input', 'r') as f:
-    vals: Sequence[str] = list(f.readlines())[:-1]
+    vals: Sequence[str] = list(f.readlines())
 
 def part_01(vals: Sequence[str]) -> int:
     threes = 0
