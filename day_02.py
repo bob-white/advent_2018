@@ -54,6 +54,7 @@ from typing import Sequence, Optional
 with open('day_02.input', 'r') as f:
     vals: Sequence[str] = list(f.readlines())
 
+
 def part_01(vals: Sequence[str]) -> int:
     threes = 0
     twos = 0
@@ -64,6 +65,7 @@ def part_01(vals: Sequence[str]) -> int:
         if 2 in c.values():
             twos += 1
     return twos * threes
+
 
 def part_02(vals: Sequence[str]) -> Optional[str]:
     for pair in itertools.permutations(vals, 2):
@@ -79,6 +81,7 @@ def part_02(vals: Sequence[str]) -> Optional[str]:
         else:
             return ''.join(match)
     return None
+
 
 print(part_01(vals))
 print(part_02(vals))
