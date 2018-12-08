@@ -109,6 +109,8 @@ def topo_sort_pairs(pairs: Sequence[Tuple[str, str]]) -> str:
     as we visit the node.
     If the degree drops to 0, we enqueue that vertex.
     
+    This is based on https://en.wikipedia.org/wiki/Topological_sorting#Kahn%27s_algorithm
+    
     Arguments:
         pairs {Sequence[Tuple[str, str]]} -- The graph edges as a pair of nodes.
     
