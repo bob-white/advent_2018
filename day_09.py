@@ -89,12 +89,13 @@ for game in games:
     players, marbles, *high_score = game
     scores: Dict[int, int] = defaultdict(int)
 
-    # Marbles start at 1, and we want to repeat the players constantly.
     for marble, player in zip(range(marbles + 1), cycle(range(players))):
         if marble and not marble % 23:
+            # Rotate the circle back by 7, and remove that marble.
             circle.rotate(-7)
             scores[player] += marble + circle.pop()
         else:
+            # Rotate the circle by 2, and then place a new marble
             circle.rotate(2)
             circle.append(marble)
 
