@@ -45,20 +45,22 @@ The IDs abcde and axcye are close, but they differ by two characters (the second
 
 What letters are common between the two correct box IDs? (In the example above, this is found by removing the differing character from either ID, producing fgij.)
 
+Your puzzle answer was pazvmqbftrbeosiecxlghkwud.
+
 """
 
 import itertools
 from collections import Counter
-from typing import Sequence, Optional
+from typing import Sequence, Optional, List
 
 with open('day_02.input', 'r') as f:
     vals: Sequence[str] = list(f.readlines())
 
 
-def part_01(vals: Sequence[str]) -> int:
+def part_01(data: Sequence[str]) -> int:
     threes = 0
     twos = 0
-    for line in vals:
+    for line in data:
         c = Counter(line)
         if 3 in c.values():
             threes += 1
@@ -67,10 +69,10 @@ def part_01(vals: Sequence[str]) -> int:
     return twos * threes
 
 
-def part_02(vals: Sequence[str]) -> Optional[str]:
-    for pair in itertools.permutations(vals, 2):
-        count: int = 0
-        match: list = []
+def part_02(data: Sequence[str]) -> str:
+    for pair in itertools.permutations(data, 2):
+        count = 0
+        match: List[str] = []
         for j, k in zip(*pair):
             if j != k:
                 count += 1
@@ -80,7 +82,7 @@ def part_02(vals: Sequence[str]) -> Optional[str]:
                 match.append(j)
         else:
             return ''.join(match)
-    return None
+    return ''
 
 
 print(part_01(vals))
