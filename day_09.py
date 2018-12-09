@@ -83,21 +83,20 @@ with open('day_09.input', 'r') as f:
 games: List[Tuple[int, ...]] = [tuple(map(int, re.findall(r'\d+', line))) for line in data.split('\n')]  
 
 for game in games:
-    circle = deque([0])
+    # Turns out rotating a deque is way faster than inserting nodes into a list.
+    circle: deque = deque()
     # high_score gets dropped when we use our actual data.
     players, marbles, *high_score = game
     scores: Dict[int, int] = defaultdict(int)
 
     # Marbles start at 1, and we want to repeat the players constantly.
-    for marble, player in zip(range(1, marbles + 1), cycle(range(players))):
-        if not marble % 23:
-            # We need to shift back the 2 units we've rotated, in addition to 7 unit shift from the rules.
-            circle.rotate(-9)
+    for marble, player in zip(range(marbles + 1), cycle(range(players))):
+        if marble and not marble % 23:
+            circle.rotate(-7)
             scores[player] += marble + circle.pop()
         else:
+            circle.rotate(2)
             circle.append(marble)
-        # Moves the insertion point by 2 in a counter clockwise manner.
-        circle.rotate(2)
 
     if high_score:
         print(max(scores.values()) == high_score[0])
