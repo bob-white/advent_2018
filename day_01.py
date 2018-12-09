@@ -57,7 +57,6 @@ Your puzzle answer was 56360.
 
 """
 
-
 import itertools
 from typing import Sequence, Set
 
