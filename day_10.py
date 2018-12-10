@@ -202,20 +202,34 @@ for line in data.split('\n'):
     signals.append((x, y, dx, dy))
 
 
-height = 0
-positions = [(x+dx, y+dy) for x, y, dx, dy in signals]
-for t in count():
-    new_positions = [(x+dx*(t+1), y+dy*(t+1)) for x, y, dx, dy in signals]
-    xs, ys = list(zip(*new_positions))
+def get_message_and_time(singals: List[Signal]) -> Tuple[str, int]:
+    """Returns the message, and the time that the message becomes coherent.
+    The moment of coherence happens when the height reaches a minimum value.
+    So we just push time forward, checking the height of our message at each second.
+    Once the height starts to grow again, we abort and print the stored message.
+    
+    Arguments:
+        singals {List[Signal]} -- The current positions and velocities of the signal objects
+    
+    Returns:
+        Tuple[str, int] -- The message, and the time it became readable.
+    """
+
+    height = 0
+    positions = [(x+dx, y+dy) for x, y, dx, dy in signals]
+    for t in count():
+        new_positions = [(x+dx*(t+1), y+dy*(t+1)) for x, y, dx, dy in signals]
+        y_min, *_, y_max = sorted(y for x, y in new_positions)
+        if not height or (y_max - y_min) <= height:
+            height = y_max - y_min
+            positions = new_positions
+        else:
+            break
+    xs, ys = list(zip(*positions))
     x_min, *_, x_max = sorted(xs)
     y_min, *_, y_max = sorted(ys)
-    if not height or (y_max - y_min) <= height:
-        height = y_max - y_min
-        positions = new_positions
-    else:
-        break
+    return '\n'.join(''.join('#'  if (i, j) in positions else ' ' for i in range(x_min-1, x_max+2)) for j in range(y_min-1, y_max+2)), t
 
-print('\n'.join(''.join('#'  if (i, j) in positions else '.' for i in range(x_min-1, x_max+2)) for j in range(y_min-1, y_max+2)))
+message, t = get_message_and_time(signals[:])
+print(message)
 print(t)
-
-    
