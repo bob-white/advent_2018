@@ -154,9 +154,8 @@ Your puzzle answer was 10054.
 """
 
 import re
-from itertools import cycle, count
-from typing import cast, List, Tuple, Dict
-from collections import deque, defaultdict
+from itertools import count
+from typing import cast, List, Tuple
 
 with open('day_10.input', 'r') as f:
     data = f.read()
