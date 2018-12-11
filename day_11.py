@@ -83,11 +83,10 @@ Your puzzle input was 9306.
 from collections import defaultdict
 from itertools import product
 from typing import Tuple, Dict
-from math import log
 
 puzzle_input = 9306
 
-def get_power_level(x, y, serial):
+def get_power_level(x: int, y: int, serial: int) -> int:
     rack_id = x + 10
     power_level = rack_id * y
     power_level += serial
@@ -97,40 +96,37 @@ def get_power_level(x, y, serial):
     power_level -= 5
     return power_level
 
-def get_power_sum(grid, x, y, s=3):
-    return sum(grid[(i, j)] for i, j in product(range(x, x+s), range(y, y+s)))
 
-def get_power_area(grid: Dict[Tuple[int, int], int], x: int, y: int, s: int=3) -> int:
+def get_power_area(grid: Dict[Tuple[int, int], int], x: int, y: int, s: int = 3) -> int:
     # Need to pull these in by 1 to properly offset the rects.
     x -= 1
     y -= 1
     return grid[(x, y)] + grid[(x+s, y+s)] - grid[(x+s, y)] - grid[(x, y+s)]
 
+def get_max_power_at_size(grid: Dict[Tuple[int, int], int], s: int = 3) -> Tuple[Tuple[int, int], int]:
+    power_level = 0
+    coordinates = (0, 0)
+    for x, y in product(range(1, 301-s), range(1, 301-s)):
+        _power_level = get_power_area(grid, x, y, s)
+        if _power_level >= power_level:
+            coordinates = (x, y)
+            power_level = _power_level
+    return coordinates, power_level
 
 
-assert (get_power_level(3, 5, 8) == 4)
-assert (get_power_level(122, 79,  57) == - 5)
-assert (get_power_level(217, 196,  39) ==  0)
-assert (get_power_level(101, 153,  71) ==  4)
+assert get_power_level(3, 5, 8) == 4
+assert get_power_level(122, 79,  57) == - 5
+assert get_power_level(217, 196,  39) ==  0
+assert get_power_level(101, 153,  71) ==  4
 
-
-grid: Dict[Tuple[int, int], int] = defaultdict(int) # stores the power level for the grid cell
-s_grid: Dict[Tuple[int, int], int] = defaultdict(int) # stores the total power level of all grid cells up to that coordinate
+# s_grid: Dict[Tuple[int, int], int] = defaultdict(int) # stores the total power level of all grid cells up to that coordinate
+s_grid = defaultdict(int)
 for x, y in product(range(1, 301), range(1, 301)):
-    grid[(x, y)] = get_power_level(x, y, puzzle_input)
     s_grid[(x, y)] = get_power_level(x, y, puzzle_input) + s_grid[(x-1, y)] + s_grid[(x, y-1)] - s_grid[(x-1, y-1)]
 
-power_levels: Dict[Tuple[int, int], int] = defaultdict(int)
-for x, y in product(range(1, 301), range(1, 301)):
-    power_levels[(x, y)] = get_power_sum(grid, x, y)
-    # Not sure why the general solution fails here, need to figure that out still
-    # power_levels[(x, y)] = get_power_area(s_grid, x, y)
+# Part 01
+print(get_max_power_at_size(s_grid, 3)[0])
 
-print(max(power_levels, key=lambda x: power_levels[x]))
-
-s_power_levels: Dict[Tuple[int, int], int] = defaultdict(int)
-for s in range(1, 301):
-    for x, y in product(range(1, 301-s), range(1, 301-s)):
-        s_power_levels[(x, y, s)] = get_power_area(s_grid, x, y, s)
-
-print(max(s_power_levels, key=lambda x: s_power_levels[x]))
+# Part 02
+((coord, power), time) = max(((get_max_power_at_size(s_grid, s), s) for s in range(1, 301)), key=lambda x: x[0][1])
+print((coord, time))
