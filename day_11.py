@@ -201,5 +201,5 @@ s_grid = create_summed_power_grid(300)
 print(get_max_power_at_size(s_grid, 3)[0])
 
 # Part 02
-((coord, power), time) = max(((get_max_power_at_size(s_grid, s), s) for s in range(1, 301)), key=lambda x: x[0][1])
-print((coord, time))
+((coord, power), size) = max(((get_max_power_at_size(s_grid, s), s) for s in range(1, 301)), key=lambda x: x[0][1])
+print((coord, size))
