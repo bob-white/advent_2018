@@ -84,9 +84,20 @@ from collections import defaultdict
 from itertools import product
 from typing import Tuple, Dict
 
-puzzle_input = 9306
 
-def get_power_level(x: int, y: int, serial: int) -> int:
+def get_power_level(x: int, y: int, serial: int = 9306) -> int:
+    """Returns the powerlevel at a given coordinate (x, y) based on the serial number {serial}
+    
+    Arguments:
+        x {int} -- x coordinate
+        y {int} -- y coordinate
+    
+    Keyword Arguments:
+        serial {int} -- Serial number (default: {9306})
+    
+    Returns:
+        int -- Power level
+    """
     rack_id = x + 10
     power_level = rack_id * y
     power_level += serial
@@ -97,13 +108,79 @@ def get_power_level(x: int, y: int, serial: int) -> int:
     return power_level
 
 
+def create_summed_power_grid(size:int = 300) -> Dict[Tuple[int, int], int]:
+    """Creates a grid where each cell (x, y) is equal to the summed power level of all cells within the rect (1, 1, x, y).
+    
+    So Grid[(1, 1)] == get_power_levels(1, 1) and Grid[(1, 2)] == get_power_levels(1, 1) + get_power_levels(1, 2)
+
+    Keyword Arguments:
+        size {int} -- Size of the square grid to create. (default: {300})
+    
+    Returns:
+        Dict[Tuple[int, int], int] -- The grid.
+    """
+
+    grid: Dict[Tuple[int, int], int] = defaultdict(int)
+    for x, y in product(range(1, size + 1), range(1, size + 1)):
+        # This is done by taking the new cell (x, y) power level, and adding to the regions represented by (x, y-1) and (y, x-1)
+        # which creates an overlap that we need to subtract out, which would be (x-1, y-1)
+        # This lets us build up all the power levels for a few adds and a subtract, which is much cheaper than summing the whole board.
+        grid[(x, y)] = get_power_level(x, y) + grid[(x-1, y)] + grid[(x, y-1)] - grid[(x-1, y-1)]
+    return grid
+
+
 def get_power_area(grid: Dict[Tuple[int, int], int], x: int, y: int, s: int = 3) -> int:
+    """Returns the power level for a given quad of coordinates (x, y, x+s-1, y+s-1)
+    
+    We calculate this in a similar manner to how we created the summed power grid.
+
+    First we get the area of furthest point in the area (x+s-1, y+s-1) we then subtract
+    Then we remove the regions encoded in (x+s-1, y-1) and (x-1, y+s-1)
+    We then need to add back in (x-1, y-1) as we've removed those values twice
+
+    For example, (6, 4) with size 4, the # represents the area we want to calculate.
+    The . represents areas that we want to remove, and the X represents the overlapped areas that we need to add back in.
+    So you can see that we want (9, 7) - (5, 7) - (9, 3) + (5, 3) 
+    #123456789
+    1XXXXX....
+    2XXXXX....
+    3XXXXX....
+    4.....####
+    5.....####
+    6.....####
+    7.....####
+
+    Arguments:
+        grid {Dict[Tuple[int, int], int]} -- The summed power grid.
+        x {int} -- x coordinate
+        y {int} -- y coordinate
+    
+    Keyword Arguments:
+        s {int} -- Size of area (default: {3})
+    
+    Returns:
+        int -- Power level for the area.
+    """
+
     # Need to pull these in by 1 to properly offset the rects.
     x -= 1
     y -= 1
     return grid[(x, y)] + grid[(x+s, y+s)] - grid[(x+s, y)] - grid[(x, y+s)]
 
+
 def get_max_power_at_size(grid: Dict[Tuple[int, int], int], s: int = 3) -> Tuple[Tuple[int, int], int]:
+    """Returns the coordinates with the highest area at the given size, along with the size of the region.
+    
+    Arguments:
+        grid {Dict[Tuple[int, int], int]} -- The summed power grid.
+    
+    Keyword Arguments:
+        s {int} -- The size of the area to calculate the power for (default: {3})
+    
+    Returns:
+        Tuple[Tuple[int, int], int] -- Coordinates and size.
+    """
+
     power_level = 0
     coordinates = (0, 0)
     for x, y in product(range(1, 301-s), range(1, 301-s)):
@@ -113,16 +190,12 @@ def get_max_power_at_size(grid: Dict[Tuple[int, int], int], s: int = 3) -> Tuple
             power_level = _power_level
     return coordinates, power_level
 
-
 assert get_power_level(3, 5, 8) == 4
 assert get_power_level(122, 79,  57) == - 5
 assert get_power_level(217, 196,  39) ==  0
 assert get_power_level(101, 153,  71) ==  4
 
-# s_grid: Dict[Tuple[int, int], int] = defaultdict(int) # stores the total power level of all grid cells up to that coordinate
-s_grid = defaultdict(int)
-for x, y in product(range(1, 301), range(1, 301)):
-    s_grid[(x, y)] = get_power_level(x, y, puzzle_input) + s_grid[(x-1, y)] + s_grid[(x, y-1)] - s_grid[(x-1, y-1)]
+s_grid = create_summed_power_grid(300)
 
 # Part 01
 print(get_max_power_at_size(s_grid, 3)[0])
