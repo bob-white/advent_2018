@@ -69,94 +69,97 @@ You collect many of these samples (the first section of your puzzle input). The 
 
 Ignoring the opcode numbers, how many samples in your puzzle input behave like three or more opcodes?
 
+Your puzzle answer was 624.
+--- Part Two ---
+
+Using the samples you collected, work out the number of each opcode and execute the test program (the second section of your puzzle input).
+
+What value is contained in register 0 after executing the test program?
+
+Your puzzle answer was 584.
 """
 
 import re
 from collections import defaultdict
-from pprint import pprint
-with open('day_16.input', 'r') as f:
-    data = f.read()
+from typing import Dict, Callable, Set, List, Tuple, Sequence
 
 
-def list_map(f, s):
-    return list(map(f, s))
-
-def addr(regs, a, b, c):
+def addr(regs: Sequence[int], a: int, b: int, c: int) -> List[int]:
     result = list(regs)
     result[c] = result[a] + result[b]
     return result
 
-def addi(regs, a, b, c):
+def addi(regs: Sequence[int], a: int, b: int, c: int) -> List[int]:
     result = list(regs)
     result[c] = result[a] + b
     return result
 
-def mulr(regs, a, b, c):
+def mulr(regs: Sequence[int], a: int, b: int, c: int) -> List[int]:
     result = list(regs)
     result[c] = result[a] * result[b]
     return result
 
-def muli(regs, a, b, c):
+def muli(regs: Sequence[int], a: int, b: int, c: int) -> List[int]:
     result = list(regs)
     result[c] = result[a] * b
     return result
 
-def banr(regs, a, b, c):
+def banr(regs: Sequence[int], a: int, b: int, c: int) -> List[int]:
     result = list(regs)
     result[c] = result[a] & result[b]
     return result
 
-def bani(regs, a, b, c):
+def bani(regs: Sequence[int], a: int, b: int, c: int) -> List[int]:
     result = list(regs)
     result[c] = result[a] & b
     return result
 
-def borr(regs, a, b, c):
+def borr(regs: Sequence[int], a: int, b: int, c: int) -> List[int]:
     result = list(regs)
     result[c] = result[a] | result[b]
     return result
 
-def bori(regs, a, b, c):
+def bori(regs: Sequence[int], a: int, b: int, c: int) -> List[int]:
     result = list(regs)
     result[c] = result[a] | b
     return result
 
-def setr(regs, a, b, c):
+def setr(regs: Sequence[int], a: int, b: int, c: int) -> List[int]:
     result = list(regs)
     result[c] = result[a]
     return result
 
-def seti(regs, a, b, c):
+def seti(regs: Sequence[int], a: int, b: int, c: int) -> List[int]:
     result = list(regs)
     result[c] = a
     return result
 
-def gtir(regs, a, b, c):
+def gtir(regs: Sequence[int], a: int, b: int, c: int) -> List[int]:
     result = list(regs)
     result[c] = bool(a > result[b])
     return result
 
-def gtri(regs, a, b, c):
+def gtri(regs: Sequence[int], a: int, b: int, c: int) -> List[int]:
     result = list(regs)
     result[c] = bool(result[a] > b)
     return result
 
-def gtrr(regs, a, b, c):
+def gtrr(regs: Sequence[int], a: int, b: int, c: int) -> List[int]:
     result = list(regs)
     result[c] = bool(result[a] > result[b])
     return result
 
-def eqir(regs, a, b, c):
+def eqir(regs: Sequence[int], a: int, b: int, c: int) -> List[int]:
     result = list(regs)
     result[c] = bool(a == result[b])
     return result
 
-def eqri(regs, a, b, c):
+def eqri(regs: Sequence[int], a: int, b: int, c: int) -> List[int]:
     result = list(regs)
     result[c] = bool(result[a] == b)
     return result
 
-def eqrr(regs, a, b, c):
+def eqrr(regs: Sequence[int], a: int, b: int, c: int) -> List[int]:
     result = list(regs)
     result[c] = bool(result[a] == result[b])
     return result
@@ -180,8 +183,14 @@ OPERATIONS = [
     eqri, 
     eqrr
 ]
+# Input was broken into two parts, first part describes the opcode tests.
+# So all the Before / After text.
+# Second part is what is needed for part 2, and those are the operations to run
+# once we've figured out which code maps to which function.
+with open('day_16.opcodes', 'r') as f:
+    data = f.read()
 
-opcodes = defaultdict(set)
+opcodes: Dict[Callable, Set[int]] = defaultdict(set)
 test_data = re.findall(r'Before: \[.*\]', data, re.MULTILINE|re.DOTALL)[0].split('\n')
 tests = []
 for i in range((len(test_data) // 4) + 1):
@@ -201,12 +210,18 @@ for test in tests:
             opcodes[op].add(opcode)
     if count >= 3:
         op_count +=1
-
+# Part 1
 print(op_count)
 
-code_to_func = {}
-
-while any(len(codes) > 1 for codes in opcodes.values()):
+# Mapping each opcode number to a function.
+# Each function maps to exactly 1 opcode number, and luckily
+# if you inspect the data at this point, one of those functions maps to just one code
+# so we'll find the function that maps to the least number of codes, then remove that code from
+# all the other functions, as we keep processing them like this, we should get a clean 1-1 mapping.
+# A more complex overlap would probably call for doing something fancy with set intersections, and
+# it is posslbe that other inputs lead to that problem.
+code_to_func: Dict[int, Callable] = {}
+while any(codes for codes in opcodes.values()):
     op = min(opcodes, key=lambda x: len(opcodes[x]))
     codes = opcodes.pop(op)
     code = codes.pop()
@@ -214,14 +229,17 @@ while any(len(codes) > 1 for codes in opcodes.values()):
     for val in opcodes.values():
         val.discard(code)
 
-for op in OPERATIONS:
-    if op not in code_to_func.values():
-        code_to_func[3] = op
-        print(op)
+# This should ensure that we've actually mapped every opcode to a function.
+assert len(code_to_func) == 16
 
-operations = [list(map(int, line.split(' '))) for line in data.split('\n')[3109:] if line]
+with open('day_16.input', 'r') as f:
+    data = f.read()
+
+operations: List[List[int]] = [list(map(int, line.split(' '))) for line in data.split('\n') if line]
 
 registers = [0, 0, 0, 0]
 for opc, a, b, c in operations:
     registers = code_to_func[opc](registers, a, b, c)
+
+# Part 2
 print(registers[0])
