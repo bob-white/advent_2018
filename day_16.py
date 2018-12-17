@@ -81,8 +81,7 @@ Your puzzle answer was 584.
 
 import re
 from collections import defaultdict
-from typing import Dict, Callable, Set, List, Tuple, Sequence
-
+from typing import Dict, Callable, Set, List, Tuple, Sequence, Iterator
 
 def addr(regs: Sequence[int], a: int, b: int, c: int) -> List[int]:
     result = list(regs)
@@ -188,26 +187,42 @@ OPERATIONS = [
 # Second part is what is needed for part 2, and those are the operations to run
 # once we've figured out which code maps to which function.
 with open('day_16.opcodes', 'r') as f:
-    data = f.read()
+    data = f.read().split('\n')
 
-opcodes: Dict[Callable, Set[int]] = defaultdict(set)
-test_data = re.findall(r'Before: \[.*\]', data, re.MULTILINE|re.DOTALL)[0].split('\n')
-tests = []
-for i in range((len(test_data) // 4) + 1):
-    tests.append(test_data[i*4:i*4+4])
 
-op_count = 0
-for test in tests:
-    _before, _data, _after, *_ = test
+def iter_tests(data: List[str]) -> Iterator[Tuple[str, ...]]:
+    """
+    Groups the tests together into blocks of 4.
+    Before
+    Input
+    After
+    Blank
+    
+    Arguments:
+        data {List[str]} -- The puzzle input.
+    
+    Returns:
+        Iterator[Tuple[str, ...]]
+    """
+    return zip(*(iter(data),) * 4)
+
+def process_test(*test_data):
+    _before, _data, _after, _ = test
     before = tuple(map(int, re.findall(r'\d+', _before)))
     op_data = tuple(map(int, re.findall(r'\d+', _data)))
     after = list(map(int, re.findall(r'\d+', _after)))
+    return before, op_data, after
+
+opcodes: Dict[Callable, Set[int]] = defaultdict(set)
+op_count = 0
+for test in iter_tests(data):
+    before, op_data, after = process_test(*test)
     opcode, a, b, c = op_data
     count = 0
     for op in OPERATIONS:
         if op(before, a, b, c) == after:
-            count += 1
             opcodes[op].add(opcode)
+            count += 1
     if count >= 3:
         op_count +=1
 # Part 1
@@ -233,9 +248,9 @@ while any(codes for codes in opcodes.values()):
 assert len(code_to_func) == 16
 
 with open('day_16.input', 'r') as f:
-    data = f.read()
+    data = f.read().split('\n')
 
-operations: List[List[int]] = [list(map(int, line.split(' '))) for line in data.split('\n') if line]
+operations: List[List[int]] = [list(map(int, line.split(' '))) for line in data]
 
 registers = [0, 0, 0, 0]
 for opc, a, b, c in operations:
