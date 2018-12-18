@@ -419,7 +419,6 @@ print(solve())
 elves = sum(l.count('E') for l in data)
 for ap in count(4):
     v =solve(elf_power=ap, min_elves=elves)
-    print(ap, v)
     if v:
         print(v)
         break
