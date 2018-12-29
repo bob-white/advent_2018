@@ -109,21 +109,23 @@ data = """1,-1,-1,-2
 with open('day_25.input', 'r') as f:
     data = f.read().split('\n')
 
-
 points: Set[Point] = {Point(*map(int, line.split(','))) for line in data}
-graph = {pnt: nearby(pnt, points) for pnt in points}
-constelation_tree: Dict[Point, dict] = {}
 
+# So the idea here is that we're building up a tree where the top most nodes represents the start
+# of a constellation, which points to its nearby points, and so on.
+# The basic idea is that as we walk through the set of points, we remove all of the nearby nodes as well.
+# Eventually we'll run out of nodes and have identified each of our constellations.
+constellation_tree: Dict[Point, dict] = {}
 while points:
     start = points.pop()
-    node = constelation_tree[start] = {}
+    node = constellation_tree[start] = {}
     queue = [(start, node)]
     while queue:
         pnt, node = queue.pop()
-        for p in graph[pnt]:
+        for p in nearby(pnt, points):
             if p in points:
                 points.discard(p)
                 n = node[p] = {}
                 queue.append((p, n))
 
-print(len(constelation_tree))
+print(len(constellation_tree))
